@@ -13,3 +13,6 @@ path = "src/bin/main.rs"
 
 [dependencies]
 clap = { version = "4.0.32", features = ["derive"] }
+native-tls = "0.2.11"
+url = "2.3.1"
+x509-parser = "0.15.0"

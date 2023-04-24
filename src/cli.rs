@@ -1,4 +1,9 @@
+use std::str::FromStr;
+
 use clap::{Args, Parser};
+use url::Url;
+
+use crate::fetch::Fetch;
 
 const ABOUT: &str = r#"Extract server certificates"#;
 
@@ -21,7 +26,14 @@ impl Cli {
     pub fn exec(self) -> Result<(), Box<dyn std::error::Error>> {
         match self {
             Self::Show(opts) => {
-                println!("{opts:?}");
+                let url = Url::from_str(&opts.url).unwrap();
+                let fetch = Fetch::new(&url);
+
+                println!("Fetching certificate from: {}", fetch.addr());
+
+                let cert = fetch.get_certificate_pem().unwrap();
+
+                println!("{:?}", cert);
             }
         }
 
