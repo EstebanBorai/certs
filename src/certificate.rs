@@ -9,7 +9,7 @@ pub struct Certificate {
 }
 
 impl Certificate {
-    pub fn from_der<'a>(bytes: &'a [u8]) -> Self {
+    pub fn from_der(bytes: &[u8]) -> Self {
         use x509_parser::prelude::*;
 
         if let Ok((_, cert)) = X509Certificate::from_der(bytes) {
