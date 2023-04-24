@@ -33,7 +33,7 @@ impl Cli {
 
                 let cert = fetch.get_certificate_pem().unwrap();
 
-                println!("{:?}", cert);
+                println!("\n{}", cert);
             }
         }
 

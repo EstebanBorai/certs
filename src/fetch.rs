@@ -26,7 +26,7 @@ impl Fetch {
         }
     }
 
-    pub fn get_certificate_pem(&self) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn get_certificate_pem(&self) -> Result<Certificate, Box<dyn std::error::Error>> {
         let connector = TlsConnector::builder().build()?;
         let stream = TcpStream::connect(self.addr()).unwrap();
         let mut stream = connector.connect(&self.domain, stream).unwrap();
@@ -40,7 +40,7 @@ impl Fetch {
             .unwrap();
         let certificate = Certificate::from_der(bytes.as_slice());
 
-        Ok(String::default())
+        Ok(certificate)
     }
 
     pub fn addr(&self) -> String {
