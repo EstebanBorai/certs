@@ -1,6 +1,6 @@
 [package]
 name = "certs"
-version = "0.1.0-alpha1"
+version = "0.1.0-alpha2"
 edition = "2021"
 description = "CLI tool to debug server's SSL/TLS Certificates"
 keywords = ["certs", "x509", "cli", "debug"]

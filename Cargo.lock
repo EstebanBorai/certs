@@ -140,7 +140,7 @@ checksum = "50d30906286121d95be3d479533b458f87493b30a4b5f79a607db8f5d11aa91f"
 
 [[package]]
 name = "certs"
-version = "0.1.0-alpha1"
+version = "0.1.0-alpha2"
 dependencies = [
  "clap",
  "color-eyre",
