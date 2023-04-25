@@ -1,10 +1,11 @@
-use std::io::{Write};
+use std::io::Write;
 use std::net::TcpStream;
 
 use native_tls::TlsConnector;
 use url::Url;
 
 use crate::certificate::Certificate;
+use crate::error::{Error, Result};
 
 const SSL_PORT: u16 = 443;
 const HTTP_GET_REQUEST: &[u8] = b"GET / HTTP/1.0\r\n\r\n";
@@ -14,31 +15,44 @@ pub struct Fetch {
 }
 
 impl Fetch {
-    pub fn new(url: &Url) -> Self {
+    pub fn new(url: &Url) -> Result<Self> {
         if url.scheme() != "https" {
-            panic!("Only HTTPS is Supported");
+            return Err(Error::HttpsOnly(url.to_string()));
         }
 
-        let domain = url.domain().unwrap();
+        let Some(domain) = url.domain() else {
+            return Err(Error::InvalidUrl(url.to_string()));
+        };
 
-        Self {
+        Ok(Self {
             domain: domain.to_string(),
-        }
+        })
     }
 
-    pub fn get_certificate_pem(&self) -> Result<Certificate, Box<dyn std::error::Error>> {
-        let connector = TlsConnector::builder().build()?;
-        let stream = TcpStream::connect(self.addr()).unwrap();
-        let mut stream = connector.connect(&self.domain, stream).unwrap();
+    pub fn certificate_pem(&self) -> Result<Certificate> {
+        let connector = TlsConnector::builder()
+            .build()
+            .map_err(Error::ConnectorConfiguration)?;
+        let stream =
+            TcpStream::connect(self.addr()).map_err(|_e| Error::FetchFailed(self.addr()))?;
+        let mut stream = connector
+            .connect(&self.domain, stream)
+            .map_err(|_e| Error::FetchFailed(self.addr()))?;
 
-        stream.write_all(HTTP_GET_REQUEST).unwrap();
-        let bytes = stream
+        stream
+            .write_all(HTTP_GET_REQUEST)
+            .map_err(|_e| Error::StreamWrite(self.addr()))?;
+
+        let Some(cert_bytes) = stream
             .peer_certificate()
-            .unwrap()
-            .unwrap()
-            .to_der()
-            .unwrap();
-        let certificate = Certificate::from_der(bytes.as_slice());
+            .map_err(|err| {
+                eprint!("{err:?}");
+                Error::RetrievePeerCertificate
+            })? else {
+                return Err(Error::CertificateNotFound(self.addr()));
+            };
+        let der_encoded = cert_bytes.to_der().map_err(Error::DerEncodedRetrieval)?;
+        let certificate = Certificate::from_der(&der_encoded);
 
         Ok(certificate)
     }
